@@ -1,39 +1,37 @@
 # -*- coding: utf-8 -*-
+from item_handler import (
+    AgedBrieHandler,
+    BackstagePassesHandler,
+    DefaultItemHandler,
+    SulfurasHandler,
+    ConjuredItemHandler)
+
 
 class GildedRose(object):
 
     def __init__(self, items):
         self.items = items
+        self.AGED_BRIE = "Aged Brie"
+        self.SULFURAS = "Sulfuras, Hand of Ragnaros"
+        self.BACKSTAGE_PASSES = "Backstage passes to a TAFKAL80ETC concert"
+        self.CONJURED = "Conjured Mana Cake"
 
     def update_quality(self):
         for item in self.items:
-            if item.name != "Aged Brie" and item.name != "Backstage passes to a TAFKAL80ETC concert":
-                if item.quality > 0:
-                    if item.name != "Sulfuras, Hand of Ragnaros":
-                        item.quality = item.quality - 1
-            else:
-                if item.quality < 50:
-                    item.quality = item.quality + 1
-                    if item.name == "Backstage passes to a TAFKAL80ETC concert":
-                        if item.sell_in < 11:
-                            if item.quality < 50:
-                                item.quality = item.quality + 1
-                        if item.sell_in < 6:
-                            if item.quality < 50:
-                                item.quality = item.quality + 1
-            if item.name != "Sulfuras, Hand of Ragnaros":
-                item.sell_in = item.sell_in - 1
-            if item.sell_in < 0:
-                if item.name != "Aged Brie":
-                    if item.name != "Backstage passes to a TAFKAL80ETC concert":
-                        if item.quality > 0:
-                            if item.name != "Sulfuras, Hand of Ragnaros":
-                                item.quality = item.quality - 1
-                    else:
-                        item.quality = item.quality - item.quality
-                else:
-                    if item.quality < 50:
-                        item.quality = item.quality + 1
+            self.__update_each_item_quality(item)
+            # print(f'Log: {item}\n')
+
+    def __update_each_item_quality(self, item):
+        ITEM_SWITCH = {
+            self.AGED_BRIE: AgedBrieHandler(),
+            self.SULFURAS: SulfurasHandler(),
+            self.BACKSTAGE_PASSES: BackstagePassesHandler(),
+            self.CONJURED: ConjuredItemHandler()
+        }
+        item.handler = ITEM_SWITCH.get(item.name, DefaultItemHandler())
+
+        item.handler.update_sell_in(item)
+        item.handler.update_quality(item)
 
 
 class Item:
@@ -43,4 +41,4 @@ class Item:
         self.quality = quality
 
     def __repr__(self):
-        return "%s, %s, %s" % (self.name, self.sell_in, self.quality)
+        return f"{self.name}, {self.sell_in}, {self.quality}"
